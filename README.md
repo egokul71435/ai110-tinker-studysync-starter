@@ -88,4 +88,33 @@ as they are. The edge-case loop stays in `run_demo()` as a record.
 **Move refactor:** `apply_streak_bonus()` now lives only in `scoring_helpers.py`;
 `scoring.py` imports it, and the duplicate definition was removed.
 
+## Tinker 3B: weighting notes
+
+`score_study_spot()` in `ranking.py` mixes a binary factor with two graduated
+ones: noise is a flat +2 (pass) / -1 (fail) switch, while distance (up to +2)
+and seats (+1, plus up to +0.5 for surplus) scale smoothly with how well a
+spot does. That mismatch matters.
+
+Because noise never partially credits anything, it acts as a hard gate that
+the graduated factors can't out-compete. A spot one noise-level over the
+limit always eats a flat -1, even if it's the closest option on the list
+with seats to spare 
+
+ a moderate-noise spot that's farther away and has
+fewer seats can still beat it, because its noise "pass" was worth +2
+outright rather than a sliding score.
+
+Concretely, the spot type systematically buried is **closest-but-noisier**:
+e.g. Courtyard Cafe (loud, 0.2mi) will never outrank a quieter spot that's
+farther away, no matter how close Courtyard Cafe is, because the noise
+penalty swamps any amount of distance credit it could otherwise earn.
+
+Tying this to a filter bubble: each individual score is "correct" by the
+rubric, but because the noise gate is binary while the other factors are
+smooth, the ranking systematically filters out an entire category of real
+options close, noisy spots  before the user ever sees them, narrowing
+their perceived choices to only the "well-behaved on every axis" spots
+rather than surfacing the genuine distance/noise tradeoff they might
+actually prefer.
+
 Your instructor will tell you which tinker you're on. Follow the activity on the course portal.
